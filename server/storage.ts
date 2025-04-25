@@ -1,5 +1,6 @@
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 import { 
   users, User, InsertUser, 
   projects, Project, InsertProject,
@@ -15,8 +16,11 @@ import {
   auditLogs, AuditLog, InsertAuditLog,
   organizations, Organization, InsertOrganization
 } from "@shared/schema";
+import { db, pool } from "./db";
+import { eq, and, desc } from "drizzle-orm";
 
 const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
 // Storage interface
 export interface IStorage {
