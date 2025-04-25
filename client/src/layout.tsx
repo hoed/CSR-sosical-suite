@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import Header from '@/components/header';
 import { Sidebar } from '@/components/sidebar/sidebar';
-import { useAuth } from '@/hooks/use-auth';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,15 +10,6 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [location] = useLocation();
-  
-  // We want to handle the case when auth might not be available yet
-  let user = null;
-  try {
-    const auth = useAuth();
-    user = auth.user;
-  } catch (error) {
-    console.log("Auth not available in layout");
-  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

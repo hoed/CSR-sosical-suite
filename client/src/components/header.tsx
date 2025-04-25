@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bell, HelpCircle, Menu, X } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { Bell, HelpCircle, Menu, LogOut, Settings as SettingsIcon, User } from 'lucide-react';
+import { Link } from 'wouter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -22,8 +22,14 @@ interface HeaderProps {
   toggleSidebar: () => void;
 }
 
+// User data for development
+const userProfile = {
+  fullName: "Demo User",
+  username: "demo",
+  role: "admin"
+};
+
 export function Header({ toggleSidebar }: HeaderProps) {
-  const { user, logoutMutation } = useAuth();
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Project Update', message: 'Reforestation Project completion updated to 90%', read: false },
     { id: 2, title: 'New Form Submission', message: 'A new data collection form has been submitted', read: false },
@@ -36,10 +42,6 @@ export function Header({ toggleSidebar }: HeaderProps) {
     setNotifications(notifications.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
-  };
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
   };
 
   return (
@@ -150,28 +152,45 @@ export function Header({ toggleSidebar }: HeaderProps) {
               </PopoverContent>
             </Popover>
             
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar>
-                      <AvatarImage src="" alt={user.fullName || user.username} />
-                      <AvatarFallback>{(user.fullName || user.username).substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar>
+                    <AvatarImage src="" alt={userProfile.fullName} />
+                    <AvatarFallback>{userProfile.fullName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <div className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <div className="flex items-center">
+                      <SettingsIcon className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/auth">
+                    <div className="flex items-center">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

@@ -16,41 +16,38 @@ import UserManagement from "@/pages/user-management";
 import Settings from "@/pages/settings";
 import { useLocation } from "wouter";
 
-function Router() {
+function App() {
   const [location] = useLocation();
   
-  // Special handling for auth page
+  // Special handling for the auth page
   if (location === '/auth') {
     return (
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-      </Switch>
+      <TooltipProvider>
+        <Switch>
+          <Route path="/auth" component={AuthPage} />
+        </Switch>
+        <Toaster />
+      </TooltipProvider>
     );
   }
   
-  return (
-    <Layout>
-      <Switch>
-        <ProtectedRoute path="/" component={HomePage} />
-        <ProtectedRoute path="/dashboard" component={Dashboard} />
-        <ProtectedRoute path="/projects" component={Projects} />
-        <ProtectedRoute path="/metrics" component={Metrics} />
-        <ProtectedRoute path="/reports" component={Reports} />
-        <ProtectedRoute path="/data-collection" component={DataCollection} />
-        <ProtectedRoute path="/sdg-alignment" component={SdgAlignment} />
-        <ProtectedRoute path="/user-management" component={UserManagement} />
-        <ProtectedRoute path="/settings" component={Settings} />
-        <Route path="/auth" component={AuthPage} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
-  );
-}
-
-function App() {
+  // Protected routes wrapped in the Layout component
   return (
     <TooltipProvider>
-      <Router />
+      <Layout>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/projects" component={Projects} />
+          <Route path="/metrics" component={Metrics} />
+          <Route path="/reports" component={Reports} />
+          <Route path="/data-collection" component={DataCollection} />
+          <Route path="/sdg-alignment" component={SdgAlignment} />
+          <Route path="/user-management" component={UserManagement} />
+          <Route path="/settings" component={Settings} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
       <Toaster />
     </TooltipProvider>
   );

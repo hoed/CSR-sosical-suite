@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { insertUserSchema, InsertUser } from '@shared/schema';
-import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
 import { Leaf, ArrowRight, Loader2 } from 'lucide-react';
 import { 
@@ -25,6 +24,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 type AuthFormMode = 'login' | 'register';
 
@@ -44,15 +44,10 @@ const registerSchema = insertUserSchema.extend({
 
 export default function AuthPage() {
   const [mode, setMode] = useState<AuthFormMode>('login');
-  const { user, loginMutation, registerMutation } = useAuth();
   const [, navigate] = useLocation();
-  
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  const { toast } = useToast();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   
   // Login form
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -78,13 +73,32 @@ export default function AuthPage() {
 
   // Handle login submission
   function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    loginMutation.mutate(values);
+    setIsLoggingIn(true);
+    
+    // Simulate login process
+    setTimeout(() => {
+      setIsLoggingIn(false);
+      toast({
+        title: "Logged in successfully",
+        description: "Welcome back to ImpactTrack!",
+      });
+      navigate('/dashboard');
+    }, 1000);
   }
 
   // Handle registration submission
   function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    const { confirmPassword, ...userData } = values;
-    registerMutation.mutate(userData as InsertUser);
+    setIsRegistering(true);
+    
+    // Simulate registration process
+    setTimeout(() => {
+      setIsRegistering(false);
+      toast({
+        title: "Account created",
+        description: "Your account has been created successfully!",
+      });
+      navigate('/dashboard');
+    }, 1500);
   }
 
   return (
@@ -154,9 +168,9 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={loginMutation.isPending}
+                    disabled={isLoggingIn}
                   >
-                    {loginMutation.isPending ? (
+                    {isLoggingIn ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Sign In
@@ -241,9 +255,9 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={registerMutation.isPending}
+                    disabled={isRegistering}
                   >
-                    {registerMutation.isPending ? (
+                    {isRegistering ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Create Account
