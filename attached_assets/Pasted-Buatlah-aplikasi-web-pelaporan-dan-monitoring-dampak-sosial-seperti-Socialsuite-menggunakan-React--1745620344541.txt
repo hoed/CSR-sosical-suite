@@ -1,0 +1,51 @@
+Buatlah aplikasi web pelaporan dan monitoring dampak sosial seperti Socialsuite, menggunakan React (frontend), FastAPI (backend), dan PostgreSQL sebagai database. Aplikasi ini harus dapat digunakan oleh perusahaan atau organisasi untuk melacak, mengukur, dan melaporkan dampak sosial dan lingkungan dari program mereka.
+
+Fitur Utama:
+Dasbor Dampak Sosial & ESG
+Visualisasi data dampak sosial (grafik bar, pie, line).
+Status program dan indikator keberhasilan.
+Skor ESG otomatis berdasarkan data yang diinput.
+Manajemen Proyek CSR/ESG
+CRUD proyek: nama proyek, lokasi, kategori (Lingkungan/Sosial/Tata Kelola).
+Penjadwalan kegiatan dan target dampak.
+Pelacakan Indikator Dampak
+Input metrik dampak (contoh: jumlah penerima manfaat, emisi karbon dikurangi, kegiatan sosial).
+Kustomisasi indikator berdasarkan jenis proyek.
+Formulir Pengumpulan Data
+Admin dan mitra dapat mengisi form berbasis proyek.
+Mendukung input teks, angka, file upload, dan checkbox.
+Laporan Otomatis (PDF/Excel)
+Ekspor laporan proyek dan dampaknya ke PDF atau Excel.
+Template laporan bisa dikustomisasi.
+Pelacakan KPI dan SDGs
+Hubungkan metrik ke KPI internal dan Tujuan Pembangunan Berkelanjutan (SDGs).
+Notifikasi & Reminder
+Kirim email/push notifikasi untuk deadline pelaporan.
+Role & Akses Pengguna
+Role: Admin, Kontributor Proyek, Reviewer.
+Akses terbatas sesuai role.
+Import & Integrasi
+Import data CSV/XLSX.
+API endpoint untuk integrasi dengan sistem lain.
+Audit Trail & Log Aktivitas
+Catat semua aktivitas pengguna untuk keperluan audit.
+
+Teknologi:
+Frontend: React + TailwindCSS + Zustand (untuk state) + Recharts/Chart.js
+Backend: FastAPI + SQLAlchemy + Pydantic
+Database: supabase
+Autentikasi: JWT + role-based access control
+Ekspor File: Gunakan weasyprint atau pandas untuk PDF/Excel
+Notifikasi Email: SMTP atau integrasi dengan SendGrid/Mailgun
+
+Struktur Proyek:
+Backend: api/, models/, schemas/, routes/, utils/
+Frontend: components/, pages/, services/, hooks/, assets/
+Buatkan contoh endpoint backend untuk:
+Tambah Proyek CSR
+Input Indikator Dampak
+Ekspor Laporan PDF
+Dan contoh komponen frontend untuk:
+Dashboard dampak dengan grafik
+Form input indikator
+Tabel pelaporan per proyek
