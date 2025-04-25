@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 type AuthFormMode = 'login' | 'register';
 
@@ -46,8 +47,14 @@ export default function AuthPage() {
   const [mode, setMode] = useState<AuthFormMode>('login');
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
+  const { loginMutation, registerMutation, user } = useAuth();
+  
+  // Check if user is already logged in and redirect if necessary
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
   
   // Login form
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -72,33 +79,43 @@ export default function AuthPage() {
   });
 
   // Handle login submission
-  function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    setIsLoggingIn(true);
-    
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoggingIn(false);
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      await loginMutation.mutateAsync(values);
       toast({
         title: "Logged in successfully",
         description: "Welcome back to ImpactTrack!",
       });
       navigate('/dashboard');
-    }, 1000);
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   // Handle registration submission
-  function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    setIsRegistering(true);
-    
-    // Simulate registration process
-    setTimeout(() => {
-      setIsRegistering(false);
+  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+    try {
+      // Remove confirmPassword as it's not part of the API model
+      const { confirmPassword, ...userData } = values;
+      await registerMutation.mutateAsync(userData);
       toast({
         title: "Account created",
         description: "Your account has been created successfully!",
       });
       navigate('/dashboard');
-    }, 1500);
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Registration failed",
+        description: error instanceof Error ? error.message : "Please try again with different credentials.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -168,9 +185,9 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isLoggingIn}
+                    disabled={loginMutation.isPending}
                   >
-                    {isLoggingIn ? (
+                    {loginMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Sign In
@@ -255,9 +272,9 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isRegistering}
+                    disabled={registerMutation.isPending}
                   >
-                    {isRegistering ? (
+                    {registerMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
                     Create Account

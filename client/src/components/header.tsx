@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Bell, HelpCircle, Menu, LogOut, Settings as SettingsIcon, User } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -17,19 +17,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
   toggleSidebar: () => void;
 }
 
-// User data for development
-const userProfile = {
-  fullName: "Demo User",
-  username: "demo",
-  role: "admin"
-};
-
 export function Header({ toggleSidebar }: HeaderProps) {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Project Update', message: 'Reforestation Project completion updated to 90%', read: false },
     { id: 2, title: 'New Form Submission', message: 'A new data collection form has been submitted', read: false },
@@ -42,6 +38,31 @@ export function Header({ toggleSidebar }: HeaderProps) {
     setNotifications(notifications.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
+  };
+  
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out"
+        });
+        navigate('/login');
+      } else {
+        throw new Error("Logout failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "An error occurred while logging out",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -156,8 +177,8 @@ export function Header({ toggleSidebar }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar>
-                    <AvatarImage src="" alt={userProfile.fullName} />
-                    <AvatarFallback>{userProfile.fullName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src="" alt={user?.fullName || user?.username || 'User'} />
+                    <AvatarFallback>{(user?.fullName || user?.username || 'U').substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -181,13 +202,11 @@ export function Header({ toggleSidebar }: HeaderProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/auth">
-                    <div className="flex items-center">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </div>
-                  </Link>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <div className="flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
