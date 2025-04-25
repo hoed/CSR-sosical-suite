@@ -36,7 +36,7 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
     }
   };
 
@@ -47,109 +47,44 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
-          return done(null, user);
-        }
-      } catch (error) {
-        return done(error);
+      const user = await storage.getUserByUsername(username);
+      if (!user || !(await comparePasswords(password, user.password))) {
+        return done(null, false);
+      } else {
+        return done(null, user);
       }
     }),
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
+    const user = await storage.getUser(id);
+    done(null, user);
   });
 
   app.post("/api/register", async (req, res, next) => {
-    try {
-      const { username, password, fullName, email, role = "contributor", organizationId } = req.body;
-
-      if (!username || !password || !fullName || !email) {
-        return res.status(400).json({ message: "Required fields missing" });
-      }
-
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      // Create default organization if needed
-      let orgId = organizationId;
-      if (!orgId) {
-        const organizations = await storage.getOrganizations();
-        if (organizations.length === 0) {
-          const newOrg = await storage.createOrganization({
-            name: "Default Organization",
-            industry: "Other"
-          });
-          orgId = newOrg.id;
-        } else {
-          orgId = organizations[0].id;
-        }
-      }
-
-      const user = await storage.createUser({
-        username,
-        password: await hashPassword(password),
-        fullName,
-        email,
-        role,
-        organizationId: orgId
-      });
-
-      // Create audit log
-      await storage.createAuditLog({
-        userId: user.id,
-        action: "register",
-        entityType: "user",
-        entityId: user.id,
-        details: { username: user.username }
-      });
-
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json(user);
-      });
-    } catch (error) {
-      next(error);
+    const existingUser = await storage.getUserByUsername(req.body.username);
+    if (existingUser) {
+      return res.status(400).send("Username already exists");
     }
+
+    const user = await storage.createUser({
+      ...req.body,
+      password: await hashPassword(req.body.password),
+      role: req.body.role || "user",
+    });
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+      res.status(201).json(user);
+    });
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    // Create audit log
-    storage.createAuditLog({
-      userId: req.user!.id,
-      action: "login",
-      entityType: "user",
-      entityId: req.user!.id,
-      details: { username: req.user!.username }
-    });
-    
     res.status(200).json(req.user);
   });
 
   app.post("/api/logout", (req, res, next) => {
-    // Create audit log if user is authenticated
-    if (req.isAuthenticated()) {
-      storage.createAuditLog({
-        userId: req.user!.id,
-        action: "logout",
-        entityType: "user",
-        entityId: req.user!.id,
-        details: { username: req.user!.username }
-      });
-    }
-    
     req.logout((err) => {
       if (err) return next(err);
       res.sendStatus(200);
