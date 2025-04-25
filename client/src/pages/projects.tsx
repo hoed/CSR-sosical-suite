@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Project, InsertProject, insertProjectSchema } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -61,11 +60,20 @@ const projectFormSchema = insertProjectSchema.extend({
 });
 
 export default function ProjectsPage() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Mock user data
+  const user = {
+    id: 1,
+    username: "demo",
+    fullName: "Demo User",
+    email: "demo@example.com",
+    role: "admin",
+    organizationId: 1
+  };
   
   // Fetch projects
   const { 

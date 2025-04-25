@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +29,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Save, Bell, Lock, UserCog, Globe, Shield, InfoIcon } from 'lucide-react';
 
 // Profile settings schema
@@ -60,16 +60,23 @@ const securitySchema = z.object({
 });
 
 export default function Settings() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
+  
+  // Mock user data
+  const user = {
+    fullName: "Demo User",
+    username: "demo",
+    email: "demo@example.com",
+    role: "admin"
+  };
 
   // Profile form
   const profileForm = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.fullName || "",
-      email: user?.email || "",
+      fullName: user.fullName || "",
+      email: user.email || "",
       jobTitle: "Environmental Program Manager",
       bio: "Passionate about sustainability and environmental impact measurement.",
     },
