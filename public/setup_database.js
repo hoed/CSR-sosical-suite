@@ -1,10 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-const { Pool } = require('@neondatabase/serverless');
-const dotenv = require('dotenv');
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
+import ws from 'ws';
+
+neonConfig.webSocketConstructor = ws;
 
 // Load environment variables
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -18,7 +25,7 @@ async function setupDatabase() {
 
   try {
     // Read the schema SQL file
-    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schemaPath = join(__dirname, 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
 
     console.log('Setting up database...');

@@ -25,7 +25,7 @@ const PostgresSessionStore = connectPg(session);
 // Storage interface
 export interface IStorage {
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   // Users
   getUser(id: number): Promise<User | undefined>;
@@ -101,7 +101,7 @@ export interface IStorage {
 
 // In-memory storage implementation
 export class MemStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   private usersMap: Map<number, User>;
   private organizationsMap: Map<number, Organization>;
@@ -522,4 +522,287 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      pool, 
+      createTableIfMissing: true
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db.update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  // Organization methods
+  async createOrganization(org: InsertOrganization): Promise<Organization> {
+    const [newOrg] = await db.insert(organizations).values(org).returning();
+    return newOrg;
+  }
+
+  async getOrganization(id: number): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+    return org;
+  }
+
+  async getOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations);
+  }
+
+  // Project methods
+  async createProject(project: InsertProject): Promise<Project> {
+    const now = new Date();
+    const [newProject] = await db.insert(projects)
+      .values({...project, lastUpdated: now})
+      .returning();
+    return newProject;
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+
+  async getProjects(): Promise<Project[]> {
+    return await db.select().from(projects);
+  }
+
+  async getProjectsByOrganization(orgId: number): Promise<Project[]> {
+    return await db.select()
+      .from(projects)
+      .where(eq(projects.organizationId, orgId));
+  }
+
+  async getProjectsByCategory(category: string): Promise<Project[]> {
+    return await db.select()
+      .from(projects)
+      .where(eq(projects.category, category));
+  }
+
+  async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {
+    const now = new Date();
+    const [updatedProject] = await db.update(projects)
+      .set({...projectData, lastUpdated: now})
+      .where(eq(projects.id, id))
+      .returning();
+    return updatedProject;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    await db.delete(projects).where(eq(projects.id, id));
+    return true;
+  }
+
+  // Indicator methods
+  async createIndicator(indicator: InsertIndicator): Promise<Indicator> {
+    const [newIndicator] = await db.insert(indicators).values(indicator).returning();
+    return newIndicator;
+  }
+
+  async getIndicator(id: number): Promise<Indicator | undefined> {
+    const [indicator] = await db.select().from(indicators).where(eq(indicators.id, id));
+    return indicator;
+  }
+
+  async getIndicatorsByProject(projectId: number): Promise<Indicator[]> {
+    return await db.select()
+      .from(indicators)
+      .where(eq(indicators.projectId, projectId));
+  }
+
+  async getIndicatorsByCategory(category: string): Promise<Indicator[]> {
+    return await db.select()
+      .from(indicators)
+      .where(eq(indicators.category, category));
+  }
+
+  async updateIndicator(id: number, indicatorData: Partial<InsertIndicator>): Promise<Indicator | undefined> {
+    const [updatedIndicator] = await db.update(indicators)
+      .set(indicatorData)
+      .where(eq(indicators.id, id))
+      .returning();
+    return updatedIndicator;
+  }
+
+  // Indicator Values methods
+  async createIndicatorValue(value: InsertIndicatorValue): Promise<IndicatorValue> {
+    const [newValue] = await db.insert(indicatorValues).values(value).returning();
+    return newValue;
+  }
+
+  async getIndicatorValues(indicatorId: number): Promise<IndicatorValue[]> {
+    return await db.select()
+      .from(indicatorValues)
+      .where(eq(indicatorValues.indicatorId, indicatorId));
+  }
+
+  async getIndicatorValuesByProject(projectId: number): Promise<IndicatorValue[]> {
+    return await db.select()
+      .from(indicatorValues)
+      .where(eq(indicatorValues.projectId, projectId));
+  }
+
+  // Form Templates methods
+  async createFormTemplate(template: InsertFormTemplate): Promise<FormTemplate> {
+    const [newTemplate] = await db.insert(formTemplates).values(template).returning();
+    return newTemplate;
+  }
+
+  async getFormTemplate(id: number): Promise<FormTemplate | undefined> {
+    const [template] = await db.select().from(formTemplates).where(eq(formTemplates.id, id));
+    return template;
+  }
+
+  async getFormTemplatesByProject(projectId: number): Promise<FormTemplate[]> {
+    return await db.select()
+      .from(formTemplates)
+      .where(eq(formTemplates.projectId, projectId));
+  }
+
+  // Form Submissions methods
+  async createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission> {
+    const [newSubmission] = await db.insert(formSubmissions).values(submission).returning();
+    return newSubmission;
+  }
+
+  async getFormSubmissions(templateId: number): Promise<FormSubmission[]> {
+    return await db.select()
+      .from(formSubmissions)
+      .where(eq(formSubmissions.formTemplateId, templateId));
+  }
+
+  // ESG Scores methods
+  async createEsgScore(score: InsertEsgScore): Promise<EsgScore> {
+    const [newScore] = await db.insert(esgScores).values(score).returning();
+    return newScore;
+  }
+
+  async getLatestEsgScore(orgId: number): Promise<EsgScore | undefined> {
+    const [latestScore] = await db.select()
+      .from(esgScores)
+      .where(eq(esgScores.organizationId, orgId))
+      .orderBy(desc(esgScores.calculatedAt))
+      .limit(1);
+    return latestScore;
+  }
+
+  async getEsgScoreHistory(orgId: number): Promise<EsgScore[]> {
+    return await db.select()
+      .from(esgScores)
+      .where(eq(esgScores.organizationId, orgId))
+      .orderBy(desc(esgScores.calculatedAt));
+  }
+
+  // SDG Goals methods
+  async createSdgGoal(goal: InsertSdgGoal): Promise<SdgGoal> {
+    const [newGoal] = await db.insert(sdgGoals).values(goal).returning();
+    return newGoal;
+  }
+
+  async getSdgGoal(id: number): Promise<SdgGoal | undefined> {
+    const [goal] = await db.select().from(sdgGoals).where(eq(sdgGoals.id, id));
+    return goal;
+  }
+
+  async getSdgGoals(): Promise<SdgGoal[]> {
+    return await db.select().from(sdgGoals).orderBy(sdgGoals.number);
+  }
+
+  // Project SDG Mappings methods
+  async createProjectSdgMapping(mapping: InsertProjectSdgMapping): Promise<ProjectSdgMapping> {
+    const [newMapping] = await db.insert(projectSdgMappings).values(mapping).returning();
+    return newMapping;
+  }
+
+  async getProjectSdgMappings(projectId: number): Promise<ProjectSdgMapping[]> {
+    return await db.select()
+      .from(projectSdgMappings)
+      .where(eq(projectSdgMappings.projectId, projectId));
+  }
+
+  // Reports methods
+  async createReport(report: InsertReport): Promise<Report> {
+    const [newReport] = await db.insert(reports).values(report).returning();
+    return newReport;
+  }
+
+  async getReport(id: number): Promise<Report | undefined> {
+    const [report] = await db.select().from(reports).where(eq(reports.id, id));
+    return report;
+  }
+
+  async getReportsByType(type: string): Promise<Report[]> {
+    return await db.select()
+      .from(reports)
+      .where(eq(reports.type, type));
+  }
+
+  // Notifications methods
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db.insert(notifications).values(notification).returning();
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    return await db.select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    await db.update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.id, id));
+    return true;
+  }
+
+  // Audit Logs methods
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [newLog] = await db.insert(auditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getAuditLogs(): Promise<AuditLog[]> {
+    return await db.select()
+      .from(auditLogs)
+      .orderBy(desc(auditLogs.timestamp));
+  }
+
+  async getUserAuditLogs(userId: number): Promise<AuditLog[]> {
+    return await db.select()
+      .from(auditLogs)
+      .where(eq(auditLogs.userId, userId))
+      .orderBy(desc(auditLogs.timestamp));
+  }
+}
+
+// Use the Database Storage
+export const storage = new DatabaseStorage();
