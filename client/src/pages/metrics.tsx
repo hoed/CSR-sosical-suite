@@ -136,7 +136,7 @@ export default function MetricsPage() {
     // Add the current user as creator
     const newIndicator = {
       ...values,
-      createdById: user.id,
+      createdById: user.id || 0, // Added fallback to prevent null reference
     };
     
     toast({
@@ -161,7 +161,7 @@ export default function MetricsPage() {
     // Add the current user as submitter
     const newValue = {
       ...values,
-      submittedById: user.id,
+      submittedById: user.id || 0, // Added fallback to prevent null reference
     };
     
     toast({

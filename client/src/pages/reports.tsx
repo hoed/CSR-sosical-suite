@@ -94,7 +94,7 @@ export default function ReportsPage() {
     // Add the current user as creator
     const newReport = {
       ...values,
-      createdById: user.id,
+      createdById: user.id || 0, // Added fallback to prevent null reference
     };
     
     toast({
