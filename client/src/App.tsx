@@ -23,17 +23,30 @@ function App() {
     // Check authentication status
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/user", { credentials: "include" });
+        const response = await fetch("/api/user", { 
+          credentials: "include",
+          // Add cache control to prevent caching
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+          }
+        });
+        
         if (response.ok) {
           setIsAuthenticated(true);
+          console.log("User is authenticated");
           // If on login page and authenticated, redirect to dashboard
           if (location === "/login" || location === "/") {
+            console.log("Redirecting to dashboard");
             setLocation("/dashboard");
           }
         } else {
+          console.log("User is not authenticated");
           setIsAuthenticated(false);
           // If not on login page and not authenticated, redirect to login
           if (location !== "/login" && location !== "/auth") {
+            console.log("Redirecting to login");
             setLocation("/login");
           }
         }

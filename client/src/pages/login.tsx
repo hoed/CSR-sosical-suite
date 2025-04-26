@@ -34,10 +34,14 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
+      console.log("Attempting login with:", { username });
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         credentials: 'include',
         body: JSON.stringify({ username, password })
@@ -48,12 +52,17 @@ export default function LoginPage() {
       }
       
       const user = await response.json();
+      console.log("Login successful, user:", user);
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.fullName || user.username}!`
       });
-      navigate('/dashboard');
+      
+      // Force a full page reload to ensure the session is properly recognized
+      window.location.href = '/dashboard';
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error instanceof Error ? error.message : "Something went wrong",
