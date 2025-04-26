@@ -11,6 +11,7 @@ import SdgAlignment from "@/pages/sdg-alignment";
 import UserManagement from "@/pages/user-management";
 import Settings from "@/pages/settings";
 import Layout from "./layout";
+import AuthenticatedLayout from "./components/authenticated-layout";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "./auth";
@@ -64,7 +65,7 @@ function App() {
           {!isAuthenticated ? (
             <Redirect to="/login" />
           ) : (
-            <Layout>
+            <AuthenticatedLayout>
               <Switch>
                 <Route path="/dashboard" component={Dashboard} />
                 <Route path="/projects" component={Projects} />
@@ -76,7 +77,7 @@ function App() {
                 <Route path="/settings" component={Settings} />
                 <Route component={NotFound} />
               </Switch>
-            </Layout>
+            </AuthenticatedLayout>
           )}
         </Route>
       </Switch>
