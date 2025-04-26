@@ -12,8 +12,8 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [username, setUsername] = useState('new_admin');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerFullName, setRegisterFullName] = useState('');
