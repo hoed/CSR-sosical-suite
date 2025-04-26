@@ -1,7 +1,7 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
-import Login from "@/pages/login"; // Using our new simpler login page
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import Projects from "@/pages/projects";
 import Metrics from "@/pages/metrics";
@@ -11,55 +11,33 @@ import SdgAlignment from "@/pages/sdg-alignment";
 import UserManagement from "@/pages/user-management";
 import Settings from "@/pages/settings";
 import Layout from "./layout";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "./auth";
 
 function App() {
   const [location, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isLoading } = useAuth();
+  const isAuthenticated = !!user;
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/user", { 
-          credentials: "include",
-          // Add cache control to prevent caching
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0"
-          }
-        });
-        
-        if (response.ok) {
-          setIsAuthenticated(true);
-          console.log("User is authenticated");
-          // If on login page and authenticated, redirect to dashboard
-          if (location === "/login" || location === "/") {
-            console.log("Redirecting to dashboard");
-            setLocation("/dashboard");
-          }
-        } else {
-          console.log("User is not authenticated");
-          setIsAuthenticated(false);
-          // If not on login page and not authenticated, redirect to login
-          if (location !== "/login" && location !== "/auth") {
-            console.log("Redirecting to login");
-            setLocation("/login");
-          }
+    // Handle redirects based on authentication status
+    if (!isLoading) {
+      if (isAuthenticated) {
+        // If authenticated and on login page, redirect to dashboard
+        if (location === "/login" || location === "/") {
+          console.log("User is authenticated, redirecting to dashboard");
+          setLocation("/dashboard");
         }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
+      } else {
+        // If not authenticated and not on login page, redirect to login
+        if (location !== "/login") {
+          console.log("User is not authenticated, redirecting to login");
+          setLocation("/login");
+        }
       }
-    };
-
-    checkAuth();
-  }, [location, setLocation]);
+    }
+  }, [isAuthenticated, isLoading, location, setLocation]);
 
   // Show loading state while checking authentication
   if (isLoading) {

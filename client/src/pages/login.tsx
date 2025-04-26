@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/auth';
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, login, register, isLoading } = useAuth();
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin123');
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerFullName, setRegisterFullName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
+  
+  // Loading states
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+  
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,45 +43,22 @@ export default function LoginPage() {
       return;
     }
     
-    setIsLoading(true);
-    
+    setIsLoginLoading(true);
     try {
-      console.log("Attempting login with:", { username });
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ username, password })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Invalid username or password');
-      }
-      
-      const user = await response.json();
-      console.log("Login successful, user:", user);
-      
+      const userData = await login(username, password);
       toast({
         title: "Login successful",
-        description: `Welcome back, ${user.fullName || user.username}!`
+        description: `Welcome back, ${userData.fullName || userData.username}!`,
       });
-      
-      // Force a full page reload to ensure the session is properly recognized
-      window.location.href = '/dashboard';
+      navigate('/dashboard');
     } catch (error) {
-      console.error("Login error:", error);
       toast({
         title: "Login failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive"
+        description: "Invalid username or password",
+        variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoginLoading(false);
     }
   };
 
@@ -85,43 +74,31 @@ export default function LoginPage() {
       return;
     }
     
-    setIsLoading(true);
-    
+    setIsRegisterLoading(true);
     try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: registerUsername,
-          password: registerPassword,
-          fullName: registerFullName,
-          email: registerEmail,
-          role: 'user'
-        })
+      // Use the register function from our auth hook
+      const userData = await register({
+        username: registerUsername,
+        password: registerPassword,
+        fullName: registerFullName,
+        email: registerEmail,
+        role: 'user'
       });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Registration failed');
-      }
-      
-      const user = await response.json();
       toast({
         title: "Registration successful",
-        description: `Welcome, ${user.fullName || user.username}!`
+        description: `Welcome to ImpactTrack, ${userData.fullName || userData.username}!`,
       });
+      
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Registration failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive"
+        description: error.message || "Username may already be taken",
+        variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsRegisterLoading(false);
     }
   };
 
@@ -165,7 +142,7 @@ export default function LoginPage() {
                         placeholder="Enter your username" 
                         value={username}
                         onChange={e => setUsername(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isLoginLoading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -181,11 +158,11 @@ export default function LoginPage() {
                         placeholder="Enter your password" 
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isLoginLoading}
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? (
+                    <Button type="submit" className="w-full" disabled={isLoginLoading}>
+                      {isLoginLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Logging in...
@@ -205,7 +182,7 @@ export default function LoginPage() {
                         placeholder="Enter your full name" 
                         value={registerFullName}
                         onChange={e => setRegisterFullName(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isRegisterLoading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -216,7 +193,7 @@ export default function LoginPage() {
                         placeholder="Enter your email" 
                         value={registerEmail}
                         onChange={e => setRegisterEmail(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isRegisterLoading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -226,7 +203,7 @@ export default function LoginPage() {
                         placeholder="Choose a username" 
                         value={registerUsername}
                         onChange={e => setRegisterUsername(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isRegisterLoading}
                       />
                     </div>
                     <div className="space-y-2">
@@ -237,11 +214,11 @@ export default function LoginPage() {
                         placeholder="Choose a password" 
                         value={registerPassword}
                         onChange={e => setRegisterPassword(e.target.value)}
-                        disabled={isLoading}
+                        disabled={isRegisterLoading}
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? (
+                    <Button type="submit" className="w-full" disabled={isRegisterLoading}>
+                      {isRegisterLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Creating account...

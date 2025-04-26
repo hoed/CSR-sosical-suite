@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
   user: SelectUser | null;
@@ -21,7 +20,6 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
   const {
     data: user,
     error,
@@ -38,17 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.fullName || user.username}!`,
-      });
+      console.log("Login successful", `Welcome back, ${user.fullName || user.username}!`);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: "Invalid username or password",
-        variant: "destructive",
-      });
+      console.error("Login failed", error.message);
     },
   });
 
@@ -59,17 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Registration successful",
-        description: `Welcome to ImpactTrack, ${user.fullName || user.username}!`,
-      });
+      console.log("Registration successful", `Welcome to ImpactTrack, ${user.fullName || user.username}!`);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description: error.message || "Username may already be taken",
-        variant: "destructive",
-      });
+      console.error("Registration failed", error.message || "Username may already be taken");
     },
   });
 
@@ -79,17 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
-      });
+      console.log("Logged out successfully");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Logout failed", error.message);
     },
   });
 
