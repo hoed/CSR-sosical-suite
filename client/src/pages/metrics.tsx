@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Indicator, InsertIndicator, insertIndicatorSchema, InsertIndicatorValue, insertIndicatorValueSchema } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useMockAuth as useAuth } from '@/lib/mock-auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -83,7 +82,8 @@ const indicatorFormSchema = insertIndicatorSchema.extend({
 });
 
 export default function MetricsPage() {
-  const { user } = useAuth();
+  // Simplified approach - hardcode user
+  const user = { id: 1, username: "admin", fullName: "Admin User" };
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
