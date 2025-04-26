@@ -112,7 +112,7 @@ export default function MetricsPage() {
       projectId: 0,
       value: "",
       date: new Date(),
-      submittedById: user?.id
+      submittedById: user?.id || 0
     },
   });
 
@@ -180,7 +180,7 @@ export default function MetricsPage() {
       projectId: indicator.projectId,
       value: "",
       date: new Date(),
-      submittedById: user?.id
+      submittedById: user?.id || 0
     });
     setIsValueDialogOpen(true);
   };
