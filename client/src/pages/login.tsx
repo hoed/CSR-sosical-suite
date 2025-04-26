@@ -50,7 +50,12 @@ export default function LoginPage() {
         title: "Login successful",
         description: `Welcome back, ${userData.fullName || userData.username}!`,
       });
-      navigate('/dashboard');
+      
+      // Force reload user data to trigger redirects
+      setTimeout(() => {
+        console.log("Login successful, redirect to dashboard now");
+        navigate('/dashboard');
+      }, 300);
     } catch (error) {
       toast({
         title: "Login failed",
@@ -90,7 +95,11 @@ export default function LoginPage() {
         description: `Welcome to ImpactTrack, ${userData.fullName || userData.username}!`,
       });
       
-      navigate('/dashboard');
+      // Force reload user data to trigger redirects
+      setTimeout(() => {
+        console.log("Registration successful, redirect to dashboard now");
+        navigate('/dashboard');
+      }, 300);
     } catch (error: any) {
       toast({
         title: "Registration failed",

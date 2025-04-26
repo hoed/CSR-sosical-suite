@@ -27,13 +27,13 @@ function App() {
         // If authenticated and on login page, redirect to dashboard
         if (location === "/login" || location === "/") {
           console.log("User is authenticated, redirecting to dashboard");
-          setLocation("/dashboard");
+          setTimeout(() => setLocation("/dashboard"), 100); // Small delay to ensure state has updated
         }
       } else {
         // If not authenticated and not on login page, redirect to login
         if (location !== "/login") {
           console.log("User is not authenticated, redirecting to login");
-          setLocation("/login");
+          setTimeout(() => setLocation("/login"), 100); // Small delay to ensure state has updated
         }
       }
     }

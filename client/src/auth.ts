@@ -55,7 +55,28 @@ export function useAuth() {
         throw new Error('Login failed');
       }
 
+      // Get user data from the response
       const userData = await response.json();
+      
+      // Double check authentication by making a GET to /api/user
+      try {
+        const userCheckResponse = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (userCheckResponse.ok) {
+          const verifiedUser = await userCheckResponse.json();
+          console.log("User verified:", verifiedUser);
+          setUser(verifiedUser);
+          return verifiedUser;
+        } else {
+          console.error("Login succeeded but session validation failed");
+          setUser(userData); // Fall back to using the login response
+        }
+      } catch (error) {
+        console.error("Error verifying user session:", error);
+      }
+      
       setUser(userData);
       return userData;
     } catch (error) {
