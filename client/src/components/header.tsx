@@ -177,8 +177,8 @@ export function Header({ toggleSidebar }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar>
-                    <AvatarImage src="" alt={user?.fullName || user?.username || 'User'} />
-                    <AvatarFallback>{(user?.fullName || user?.username || 'U').substring(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src="" alt="User" />
+                    <AvatarFallback>U</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
