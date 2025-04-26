@@ -17,6 +17,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up auth routes
   setupAuth(app);
 
+  // Temporary route for debug
+  app.get("/api/debug-auth", async (req, res) => {
+    try {
+      const username = "admin";
+      const password = "admin123";
+      console.log("Debugging auth for:", username);
+      
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(404).json({ message: "User not found", username });
+      }
+      
+      console.log("User found:", { id: user.id, username: user.username });
+      console.log("Stored password hash:", user.password);
+      
+      // Import the password comparison function
+      const { comparePasswords } = require("./auth");
+      
+      // Test if the password matches
+      const passwordMatches = await comparePasswords(password, user.password);
+      console.log("Password match result:", passwordMatches);
+      
+      res.json({ 
+        userFound: true, 
+        passwordMatches,
+        tryLogin: passwordMatches ? "Login should work" : "Login will fail"
+      });
+    } catch (error) {
+      console.error("Auth debug error:", error);
+      res.status(500).json({ error: String(error) });
+    }
+  });
+  
+  // Create new admin user
+  app.get("/api/admin-setup", async (req, res) => {
+    try {
+      // Import the hashPassword function
+      const { hashPassword } = require("./auth");
+      
+      // Check if admin user already exists
+      const existingUser = await storage.getUserByUsername("new_admin");
+      
+      if (existingUser) {
+        return res.json({ 
+          message: "Admin user already exists", 
+          username: "new_admin",
+          note: "Try logging in with username 'new_admin' and password 'password123'"
+        });
+      }
+      
+      // Create a new admin user with a known password
+      const hashedPassword = await hashPassword("password123");
+      
+      const newAdmin = await storage.createUser({
+        username: "new_admin",
+        password: hashedPassword,
+        fullName: "New Administrator",
+        email: "new_admin@example.com",
+        role: "admin"
+      });
+      
+      // Create a default organization if it doesn't exist
+      let organization = await storage.getOrganization(1);
+      
+      if (!organization) {
+        organization = await storage.createOrganization({
+          name: "Default Organization",
+          industry: "Technology"
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Admin user created successfully",
+        username: "new_admin",
+        password: "password123",
+        note: "Use these credentials to log in"
+      });
+    } catch (error) {
+      console.error("Admin setup error:", error);
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
   // API Routes - All prefixed with /api
   
   // Projects
