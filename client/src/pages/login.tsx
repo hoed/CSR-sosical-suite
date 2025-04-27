@@ -219,7 +219,7 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                 Measure your social impact
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 md:text-xl">
+              <p className="text-gray-900 md:text-xl">
                 Track, visualize, and report on your organization's social and environmental initiatives.
               </p>
             </div>
@@ -232,7 +232,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">Data-driven insights</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Collect and analyze impact data with powerful tools</p>
+                  <p className="text-sm text-gray-900">Collect and analyze impact data with powerful tools</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -243,7 +243,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">SDG alignment</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Map projects to UN Sustainable Development Goals</p>
+                  <p className="text-sm text-gray-900">Map projects to UN Sustainable Development Goals</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -254,7 +254,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">Beautiful reports</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Generate ESG reports for stakeholders</p>
+                  <p className="text-sm text-gray-900">Generate ESG reports for stakeholders</p>
                 </div>
               </div>
             </div>
