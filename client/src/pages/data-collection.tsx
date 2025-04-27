@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { FormTemplate, FormSubmission, InsertFormTemplate, InsertFormSubmission, Project } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
+import { useMockAuth } from '@/lib/mock-auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -210,7 +210,7 @@ const formSubmissionSchema = z.object({
 });
 
 export default function DataCollection() {
-  const { user } = useAuth();
+  const { user } = useMockAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('templates');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

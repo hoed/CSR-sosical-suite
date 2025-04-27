@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { SdgGoal, ProjectSdgMapping, InsertProjectSdgMapping, Project } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
+import { useMockAuth } from '@/lib/mock-auth-provider';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -170,7 +170,7 @@ const sdgMappingSchema = z.object({
 });
 
 export default function SdgAlignment() {
-  const { user } = useAuth();
+  const { user } = useMockAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
