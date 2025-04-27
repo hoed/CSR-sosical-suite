@@ -1,19 +1,19 @@
 -- Social Impact Reporting and Monitoring Database Schema
 
 -- USERS TABLE
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL DEFAULT 'contributor', -- admin, contributor, reviewer
+  role TEXT NOT NULL DEFAULT 'contributor',
   organization_id INTEGER,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- ORGANIZATIONS TABLE
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   industry TEXT,
@@ -22,58 +22,58 @@ CREATE TABLE organizations (
 );
 
 -- PROJECTS TABLE
-CREATE TABLE projects (
+CREATE TABLE IF NOT EXISTS projects (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   location TEXT,
-  category TEXT NOT NULL, -- Environmental, Social, Governance
-  status TEXT NOT NULL DEFAULT 'planned', -- planned, in_progress, completed, delayed, at_risk
+  category TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'planned',
   start_date TIMESTAMP,
   end_date TIMESTAMP,
-  completion REAL DEFAULT 0, -- 0-100 percent
-  impact_score INTEGER, -- 0-100
+  completion REAL DEFAULT 0,
+  impact_score INTEGER,
   organization_id INTEGER REFERENCES organizations(id),
   created_by_id INTEGER REFERENCES users(id),
   last_updated TIMESTAMP DEFAULT NOW()
 );
 
 -- INDICATORS TABLE (impact metrics)
-CREATE TABLE indicators (
+CREATE TABLE IF NOT EXISTS indicators (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  category TEXT NOT NULL, -- environmental, social, governance
-  unit TEXT, -- e.g., tons, people, percent
-  data_type TEXT NOT NULL, -- number, text, boolean, date
+  category TEXT NOT NULL,
+  unit TEXT,
+  data_type TEXT NOT NULL,
   project_id INTEGER REFERENCES projects(id),
   created_by_id INTEGER REFERENCES users(id),
   customizable BOOLEAN DEFAULT TRUE
 );
 
 -- INDICATOR VALUES TABLE
-CREATE TABLE indicator_values (
+CREATE TABLE IF NOT EXISTS indicator_values (
   id SERIAL PRIMARY KEY,
   indicator_id INTEGER REFERENCES indicators(id) NOT NULL,
   project_id INTEGER REFERENCES projects(id) NOT NULL,
-  value TEXT NOT NULL, -- Stored as text, converted based on data_type
+  value TEXT NOT NULL,
   date TIMESTAMP DEFAULT NOW(),
   submitted_by_id INTEGER REFERENCES users(id)
 );
 
 -- FORM TEMPLATES TABLE
-CREATE TABLE form_templates (
+CREATE TABLE IF NOT EXISTS form_templates (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  fields JSONB NOT NULL, -- JSON structure defining form fields
+  fields JSONB NOT NULL,
   project_id INTEGER REFERENCES projects(id),
   created_by_id INTEGER REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- FORM SUBMISSIONS TABLE
-CREATE TABLE form_submissions (
+CREATE TABLE IF NOT EXISTS form_submissions (
   id SERIAL PRIMARY KEY,
   form_template_id INTEGER REFERENCES form_templates(id) NOT NULL,
   data JSONB NOT NULL,
@@ -82,68 +82,78 @@ CREATE TABLE form_submissions (
 );
 
 -- ESG SCORES TABLE
-CREATE TABLE esg_scores (
+CREATE TABLE IF NOT EXISTS esg_scores (
   id SERIAL PRIMARY KEY,
   organization_id INTEGER REFERENCES organizations(id) NOT NULL,
-  environmental_score INTEGER, -- 0-100
-  social_score INTEGER, -- 0-100
-  governance_score INTEGER, -- 0-100
-  period TEXT NOT NULL, -- e.g., "Q3 2023"
+  environmental_score INTEGER,
+  social_score INTEGER,
+  governance_score INTEGER,
+  period TEXT NOT NULL,
   calculated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- SDG GOALS TABLE
-CREATE TABLE sdg_goals (
+CREATE TABLE IF NOT EXISTS sdg_goals (
   id SERIAL PRIMARY KEY,
-  number INTEGER NOT NULL, -- 1-17
+  number INTEGER NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   color TEXT NOT NULL
 );
 
 -- PROJECT SDG MAPPINGS TABLE
-CREATE TABLE project_sdg_mappings (
+CREATE TABLE IF NOT EXISTS project_sdg_mappings (
   id SERIAL PRIMARY KEY,
   project_id INTEGER REFERENCES projects(id) NOT NULL,
   sdg_id INTEGER REFERENCES sdg_goals(id) NOT NULL,
-  impact_level TEXT NOT NULL, -- weak, medium, strong
+  impact_level TEXT NOT NULL,
   notes TEXT,
   created_by_id INTEGER REFERENCES users(id)
 );
 
 -- REPORTS TABLE
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  type TEXT NOT NULL, -- project, impact, sdg
-  format TEXT NOT NULL, -- pdf, excel
-  parameters JSONB, -- Filter/configuration parameters
+  type TEXT NOT NULL,
+  format TEXT NOT NULL,
+  parameters JSONB,
   created_by_id INTEGER REFERENCES users(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- NOTIFICATIONS TABLE
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) NOT NULL,
   title TEXT NOT NULL,
   message TEXT NOT NULL,
-  type TEXT NOT NULL, -- reminder, alert, info
+  type TEXT NOT NULL,
   read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- AUDIT LOGS TABLE
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
   action TEXT NOT NULL,
-  entity_type TEXT NOT NULL, -- user, project, indicator, etc.
+  entity_type TEXT NOT NULL,
   entity_id INTEGER,
   details JSONB,
   timestamp TIMESTAMP DEFAULT NOW()
 );
+
+-- Create indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_projects_organization ON projects(organization_id);
+CREATE INDEX IF NOT EXISTS idx_indicators_project ON indicators(project_id);
+CREATE INDEX IF NOT EXISTS idx_indicator_values_indicator ON indicator_values(indicator_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_organization ON users(organization_id);
+CREATE INDEX IF NOT EXISTS idx_form_templates_project ON form_templates(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_sdg_mappings_project ON project_sdg_mappings(project_id);
+CREATE INDEX IF NOT EXISTS idx_esg_scores_organization ON esg_scores(organization_id);
 
 -- Seed SDG Goals data
 INSERT INTO sdg_goals (number, name, description, color) VALUES
@@ -164,13 +174,3 @@ INSERT INTO sdg_goals (number, name, description, color) VALUES
 (15, 'Life on Land', 'Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss', '#56C02B'),
 (16, 'Peace, Justice and Strong Institutions', 'Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels', '#00689D'),
 (17, 'Partnerships for the Goals', 'Strengthen the means of implementation and revitalize the global partnership for sustainable development', '#19486A');
-
--- Create index on commonly queried fields
-CREATE INDEX idx_projects_organization ON projects(organization_id);
-CREATE INDEX idx_indicators_project ON indicators(project_id);
-CREATE INDEX idx_indicator_values_indicator ON indicator_values(indicator_id);
-CREATE INDEX idx_notifications_user ON notifications(user_id);
-CREATE INDEX idx_users_organization ON users(organization_id);
-CREATE INDEX idx_form_templates_project ON form_templates(project_id);
-CREATE INDEX idx_project_sdg_mappings_project ON project_sdg_mappings(project_id);
-CREATE INDEX idx_esg_scores_organization ON esg_scores(organization_id);
