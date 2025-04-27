@@ -32,9 +32,9 @@ export function SDGTracker({
     { id: 9, number: 9, name: 'Industry, Innovation and Infrastructure', color: '#FD6925', description: 'Build resilient infrastructure' },
     { id: 10, number: 10, name: 'Reduced Inequalities', color: '#DD1367', description: 'Reduce inequality within and among countries' }
   ];
-  
+
   const displaySdgGoals = sdgGoals || defaultSdgGoals;
-  
+
   // Example project SDG contribution
   const defaultProject = {
     id: 4,
@@ -46,12 +46,12 @@ export function SDGTracker({
       { sdgId: 15, sdgNumber: 15, sdgName: 'Life on Land', impactLevel: 'Strong' }
     ]
   };
-  
+
   const activeProject = selectedProject || defaultProject;
-  
+
   // Active SDGs (those with dot indicator)
   const activeSdgs = [1, 3, 4];
-  
+
   return (
     <Card className="shadow overflow-hidden">
       <CardHeader className="border-b border-gray-200">
@@ -60,7 +60,7 @@ export function SDGTracker({
           Monitoring impact towards Sustainable Development Goals
         </p>
       </CardHeader>
-      
+
       <CardContent className="p-6">
         <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-10 gap-3">
           {displaySdgGoals.map((goal) => (
@@ -83,7 +83,7 @@ export function SDGTracker({
             </div>
           ))}
         </div>
-        
+
         <div className="mt-6">
           <h4 className="text-base font-medium text-gray-900 mb-3">Project SDG Contributions</h4>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -93,12 +93,12 @@ export function SDGTracker({
                 {activeProject.name}
               </h5>
               <span className="ml-auto px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
-                {activeProject.sdgContributions.length} SDGs aligned
+                {activeProject.sdgContributions?.length || 0} SDGs aligned
               </span>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-              {activeProject.sdgContributions.map((contribution, index) => (
+              {activeProject.sdgContributions?.map((contribution, index) => (
                 <div key={index} className="flex items-center p-2 bg-white rounded border border-gray-200">
                   <div 
                     className="w-10 h-10 rounded-md flex items-center justify-center mr-2"
@@ -115,7 +115,7 @@ export function SDGTracker({
                 </div>
               ))}
             </div>
-            
+
             <Button 
               variant="link" 
               className="text-sm font-medium text-primary-500 hover:text-primary-600 p-0"
@@ -125,7 +125,7 @@ export function SDGTracker({
           </div>
         </div>
       </CardContent>
-      
+
       <CardFooter className="px-4 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
         <Button 
           variant="link" 
